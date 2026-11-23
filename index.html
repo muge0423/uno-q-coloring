@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f7f5f1" />
+    <title>線稿上色工作台</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/zoom.css" />
+    <link rel="stylesheet" href="/ai.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="線稿填色台首頁">
+        <span class="brand-mark">m</span>
+        <span><strong>線稿上色工作台</strong><small>LINE ART COLORING</small></span>
+      </a>
+      <div class="topbar-meta"><span class="live-dot"></span> 本機工作階段</div>
+      <button id="resetButton" class="quiet-button" type="button">開始新作品</button>
+    </header>
+
+    <main class="app-layout">
+      <aside class="panel left-panel">
+        <div class="panel-heading"><span class="step-number">01</span><div><h1>選擇線稿</h1><p>上傳圖片後，自動整理可填色區域。</p></div></div>
+
+        <label class="upload-card" for="fileInput">
+          <span class="upload-icon">↑</span>
+          <strong>選取線稿圖片</strong>
+          <small>支援 PNG、JPEG、WebP，建議使用清晰線稿</small>
+          <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" />
+        </label>
+        <button id="sampleButton" class="text-button" type="button">載入示範線稿 <span>↗</span></button>
+
+        <div class="section-rule"></div>
+        <section class="ai-section" aria-labelledby="referenceHeading">
+          <div class="panel-heading"><span class="step-number">AI</span><div><h2 id="referenceHeading">參考圖片</h2><p id="aiModel">讀取 AI 設定中</p></div></div>
+          <details id="apiSettings" class="api-settings">
+            <summary>進階 AI 連線設定 <span id="apiConnectionBadge">尚未設定</span></summary>
+            <div class="api-settings-body">
+              <label class="api-label" for="apiKey">API 金鑰</label>
+              <div class="api-key-field"><input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="輸入 API 金鑰" /><button id="toggleApiKey" class="api-key-toggle" type="button" aria-label="顯示 API 金鑰">顯示</button></div>
+              <p id="apiKeyHint" class="api-help">金鑰只保留在本機程序記憶體。</p>
+              <label class="api-label" for="apiBaseUrl">服務網址</label>
+              <input id="apiBaseUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://api.openai.com/v1" />
+              <button id="railwayExample" class="api-example" type="button">填入相容服務範例網址</button>
+              <label class="api-label" for="apiFormat">API 介面</label>
+              <select id="apiFormat"><option value="responses">Responses</option><option value="chat_completions">Chat Completions</option></select>
+              <label class="api-label" for="apiOutputFormat">回覆格式</label>
+              <select id="apiOutputFormat"><option value="json_schema">結構化輸出（JSON Schema）</option><option value="json_object">JSON 物件</option><option value="text">純文字 JSON（相容模式）</option></select>
+              <label class="api-label" for="apiModelInput">模型名稱</label>
+              <input id="apiModelInput" type="text" list="apiModelList" autocomplete="off" spellcheck="false" placeholder="輸入或選擇模型 ID" />
+              <datalist id="apiModelList"></datalist>
+              <div class="api-buttons"><button id="fetchModels" class="outline-button" type="button">取得模型清單</button><button id="saveApiSettings" class="primary-button" type="button">儲存設定</button></div>
+              <button id="clearApiKey" class="api-clear" type="button">清除已儲存金鑰</button>
+              <p id="apiSettingsStatus" class="api-help" role="status" aria-live="polite">請選擇可讀取圖片的模型。</p>
+              <button id="testApi" class="outline-button ai-test-button" type="button" disabled>測試圖片辨識</button>
+              <p class="api-help">測試會使用示範圖片，不會傳送你的線稿或參考圖片。</p>
+            </div>
+          </details>
+          <label class="outline-button reference-picker" for="referenceInput">
+            <span><b aria-hidden="true">＋</b> 加入參考圖片</span><small id="referenceCount">0 / 3</small>
+            <input id="referenceInput" type="file" aria-label="加入參考圖片" accept="image/png,image/jpeg,image/webp" multiple />
+          </label>
+          <ul id="referenceList" class="reference-list" aria-label="已選參考圖片"></ul>
+          <button id="autoColorButton" class="primary-button" type="button" aria-describedby="aiScope" disabled>依參考圖片上色 <span aria-hidden="true">✦</span></button>
+          <p id="aiScope" class="ai-scope">上色時會將線稿、區域資訊與參考圖片傳送至所選 AI 服務。</p>
+          <p id="aiStatus" class="ai-status" aria-live="polite" hidden></p>
+        </section>
+
+        <div class="section-rule"></div>
+        <div class="subheading"><span class="step-number muted">02</span><div><h2>分區設定</h2><p>調整線條偵測與補漏程度。</p></div></div>
+
+        <label class="range-label" for="thresholdRange"><span>線條辨識</span><output id="thresholdValue">205</output></label>
+        <input id="thresholdRange" type="range" min="120" max="245" value="205" />
+        <div class="range-hints"><span>只抓深色</span><span>包含淡線</span></div>
+
+        <label class="range-label gap-label" for="closeRange"><span>自動補小缺口</span><output id="closeValue">5 px</output></label>
+        <input id="closeRange" type="range" min="0" max="31" step="1" value="5" />
+        <div class="range-hints"><span>關閉</span><span>較強</span></div>
+
+        <button id="resegmentButton" class="primary-button" type="button" disabled>重新分析分區 <span>↻</span></button>
+
+        <div class="repair-card">
+          <div class="repair-head"><span class="repair-icon">✎</span><strong>修補線稿缺口</strong></div>
+          <p>在未封閉的線條上補一筆，再重新整理區域。修補筆跡只協助分區，不會出現在成品中。</p>
+          <div class="repair-actions">
+            <button id="repairToggle" class="outline-button" type="button" disabled>開始修補</button>
+            <button id="undoStroke" class="icon-button" type="button" title="復原上一筆" disabled>↶</button>
+            <button id="clearStrokes" class="icon-button" type="button" title="清除修補筆跡" disabled>×</button>
+          </div>
+          <label class="brush-label" for="brushRange"><span>筆刷大小</span><output id="brushValue">5</output></label>
+          <input id="brushRange" type="range" min="2" max="18" value="5" />
+        </div>
+
+      </aside>
+
+      <section class="workspace">
+        <div class="workspace-toolbar">
+          <div class="file-title"><span class="file-icon">▧</span><span id="fileName">尚未選擇圖片</span><small id="dimensions">—</small></div>
+          <div class="toolbar-actions">
+            <div class="view-switch" role="group" aria-label="預覽模式">
+              <button class="view-button active" data-view="regions" type="button">分區預覽</button>
+              <button class="view-button" data-view="color" type="button">填色預覽</button>
+              <button class="view-button" data-view="original" type="button">原始線稿</button>
+            </div>
+            <div class="zoom-controls" role="group" aria-label="畫布縮放">
+              <button id="zoomOut" class="zoom-button" type="button" title="縮小" disabled>−</button>
+              <output id="zoomValue" class="zoom-value">100%</output>
+              <button id="zoomIn" class="zoom-button" type="button" title="放大" disabled>＋</button>
+              <button id="zoomReset" class="zoom-reset" type="button" title="重設為適合畫布" disabled>適合</button>
+            </div>
+          </div>
+        </div>
+        <div class="compositor-controls">
+          <label><input id="boardCompositor" type="checkbox" disabled /> 使用裝置加速</label>
+          <output id="compositorStatus" aria-live="polite">合成方式：本機瀏覽器</output>
+        </div>
+        <div id="stage" class="stage checkerboard">
+          <div id="canvasViewport" class="canvas-viewport">
+            <div id="canvasPlane" class="canvas-plane">
+              <canvas id="artCanvas" aria-label="線稿預覽與分區編輯"></canvas>
+              <canvas id="regionOverlay" aria-hidden="true"></canvas>
+            </div>
+          </div>
+          <div id="emptyState" class="empty-state"><div class="empty-mark">✳</div><strong>先選擇一張線稿</strong><span>可填色區域會顯示在這裡</span></div>
+          <div id="loadingState" class="loading-state hidden"><span class="spinner"></span><strong>正在整理圖片區域</strong><small>處理時間依圖片大小而異</small></div>
+          <div id="canvasHint" class="canvas-hint hidden"><span class="hint-dot"></span><span id="hintText">選擇顏色，再點選區域</span></div>
+        </div>
+        <div class="canvas-footer"><div class="legend"><span class="legend-item"><i class="legend-line"></i> 原始筆觸</span><span class="legend-item"><i class="legend-fill"></i> 可填色區域</span><span class="legend-item"><i class="legend-warning">!</i> 接觸畫布邊緣</span></div><div id="regionSummary" class="region-summary">等待圖片</div></div>
+      </section>
+
+      <aside class="panel right-panel">
+        <div class="panel-heading"><span class="step-number">03</span><div><h2 id="paletteHeading">選擇顏色</h2><p id="paletteDetail">選取顏色後，點選區域套用</p></div></div>
+        <div id="palette" class="palette-grid"></div>
+
+        <div class="section-rule"></div>
+        <div class="regions-heading"><div><h2>填色區域</h2><p id="regionCount">選擇線稿後顯示</p></div><button id="clearColors" class="text-button compact" type="button" disabled>清除顏色</button></div>
+        <label class="search-box"><span>⌕</span><input id="regionSearch" type="search" placeholder="搜尋區域編號" /></label>
+        <label id="reviewFilter" class="review-filter" hidden><input id="reviewOnly" type="checkbox" /> 只顯示需要檢查 <output id="reviewCount"></output></label>
+        <div id="regionList" class="region-list"><div class="region-empty">選擇線稿後，點選區域即可上色。</div></div>
+
+        <div class="section-rule output-rule"></div>
+        <div class="output-heading"><div class="output-icon">↗</div><div><h2>下載圖片</h2><p>可保留透明背景，或加入背景圖片。</p></div></div>
+        <label class="background-upload" for="backgroundInput"><span>▧</span> 加入背景圖片 <small>選用</small><input id="backgroundInput" type="file" accept="image/png,image/jpeg,image/webp" /></label>
+        <div class="export-actions"><button id="exportButton" class="primary-button export-button" type="button" disabled>下載透明 PNG <span>↓</span></button><button id="exportCompositeButton" class="outline-button composite-button" type="button" disabled>下載含背景圖片</button></div>
+      </aside>
+    </main>
+    <div id="toast" class="toast hidden" role="status"></div>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
