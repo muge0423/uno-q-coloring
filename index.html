@@ -29,7 +29,6 @@
           <small>支援 PNG、JPEG、WebP，建議使用清晰線稿</small>
           <input id="fileInput" type="file" accept="image/png,image/jpeg,image/webp" />
         </label>
-        <button id="sampleButton" class="text-button" type="button">載入示範線稿 <span>↗</span></button>
 
         <div class="section-rule"></div>
         <section class="ai-section" aria-labelledby="referenceHeading">
@@ -42,7 +41,7 @@
               <p id="apiKeyHint" class="api-help">金鑰只保留在本機程序記憶體。</p>
               <label class="api-label" for="apiBaseUrl">服務網址</label>
               <input id="apiBaseUrl" type="url" autocomplete="off" spellcheck="false" placeholder="https://api.openai.com/v1" />
-              <button id="railwayExample" class="api-example" type="button">填入相容服務範例網址</button>
+              <button id="railwayPreset" class="api-preset" type="button">帶入 Railway 服務網址</button>
               <label class="api-label" for="apiFormat">API 介面</label>
               <select id="apiFormat"><option value="responses">Responses</option><option value="chat_completions">Chat Completions</option></select>
               <label class="api-label" for="apiOutputFormat">回覆格式</label>
@@ -54,7 +53,7 @@
               <button id="clearApiKey" class="api-clear" type="button">清除已儲存金鑰</button>
               <p id="apiSettingsStatus" class="api-help" role="status" aria-live="polite">請選擇可讀取圖片的模型。</p>
               <button id="testApi" class="outline-button ai-test-button" type="button" disabled>測試圖片辨識</button>
-              <p class="api-help">測試會使用示範圖片，不會傳送你的線稿或參考圖片。</p>
+              <p class="api-help">測試只會傳送本機產生的合成色塊。</p>
             </div>
           </details>
           <label class="outline-button reference-picker" for="referenceInput">

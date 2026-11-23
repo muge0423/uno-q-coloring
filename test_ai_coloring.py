@@ -264,7 +264,6 @@ class LocalServerIntegrationTests(unittest.TestCase):
         with patch.dict(os.environ, {}, clear=True):
             app.ai_connection = ai_coloring.APIConnection()
         app.board_renderer = None
-        app.sample_path = None
         threads = [threading.Thread(target=instance.serve_forever, daemon=True) for instance in (relay, app)]
         for thread in threads:
             thread.start()
@@ -360,7 +359,7 @@ class LocalServerIntegrationTests(unittest.TestCase):
 
     def test_upstream_ordinary_4xx_does_not_expose_response_body(self):
         # The response body could include a provider's internal details or token.
-        key = "fake-demo-key"
+        key = "invalid-test-key"
         connection = {"api_key": key, "base_url": "https://relay.example/v1"}
         for code in (400, 401, 403, 404, 405, 422, 429, 500):
             with self.subTest(code=code):

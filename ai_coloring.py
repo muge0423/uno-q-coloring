@@ -94,7 +94,7 @@ def settings() -> tuple[str, str]:
 
 def normalize_base_url(value: str) -> str:
     if not isinstance(value, str) or not value or len(value) > 2048 or any(ord(c) < 33 for c in value):
-        raise ColoringError("請輸入有效的 API 基礎網址，例如 https://example.com/v1。")
+        raise ColoringError("請輸入有效的 API 基礎網址。")
     try:
         url = urlsplit(value)
         host, port = url.hostname, url.port

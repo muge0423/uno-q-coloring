@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import mimetypes
 import socket
 import threading
 import time
@@ -227,14 +226,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send_json(job)
         if path == "/api/compositor/config":
             board = self.server.board_renderer
-            config = board.config() if board else {"enabled": False}
-            config["sample_available"] = bool(self.server.sample_path and self.server.sample_path.is_file())
-            return self.send_json(config)
-        if path == "/api/sample":
-            sample_path = self.server.sample_path
-            if not sample_path or not sample_path.exists():
-                return self.send_json({"error": "示範線稿目前無法使用，請選取一張圖片。"}, 404)
-            return self.send_bytes(sample_path.read_bytes(), mimetypes.guess_type(sample_path)[0] or "image/jpeg")
+            return self.send_json(board.config() if board else {"enabled": False})
 
         parts = path.strip("/").split("/")
         if len(parts) == 4 and parts[:2] == ["api", "session"]:
@@ -482,7 +474,6 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Local line-art coloring prototype")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8765)
-    parser.add_argument("--sample", type=Path, default=None, help="Optional image shown on startup")
     parser.add_argument("--unoq-render-port", type=int, help="UNO Q renderer's locally forwarded ADB port")
     parser.add_argument("--open-browser", action="store_true", help="Open the workbench after the server starts listening")
     args = parser.parse_args()
@@ -494,7 +485,6 @@ def main() -> None:
     except OSError as error:
         parser.exit(1, f"無法在 {args.host}:{args.port} 啟動伺服器：{error}\n")
 
-    server.sample_path = args.sample
     server.board_renderer = BoardBridge(args.unoq_render_port) if args.unoq_render_port else None
     server.ai_connection = ai_coloring.APIConnection()
     url = f"http://{args.host}:{server.server_port}"

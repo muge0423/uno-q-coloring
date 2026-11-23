@@ -1,12 +1,12 @@
 const palette = [
-  { key: "warm_brown_base", name: "深酒紅", color: "#552525" },
-  { key: "hair_blue_base", name: "靛藍", color: "#3c3f86" },
-  { key: "skin_base", name: "灰玫瑰", color: "#a87a78" },
-  { key: "eye_yellow_base", name: "金黃", color: "#e0cc17" },
-  { key: "orb_yellow_base", name: "淺黃", color: "#f1e34d" },
-  { key: "scarf_blue_base", name: "亮藍", color: "#3b41b3" },
-  { key: "glove_brown_base", name: "玫瑰棕", color: "#80494c" },
-  { key: "pants_navy_base", name: "深藍", color: "#171a39" },
+  { key: "deep_burgundy", name: "深酒紅", color: "#552525" },
+  { key: "indigo", name: "靛藍", color: "#3c3f86" },
+  { key: "dusty_rose", name: "灰玫瑰", color: "#a87a78" },
+  { key: "gold", name: "金黃", color: "#e0cc17" },
+  { key: "pale_yellow", name: "淺黃", color: "#f1e34d" },
+  { key: "bright_blue", name: "亮藍", color: "#3b41b3" },
+  { key: "rose_brown", name: "玫瑰棕", color: "#80494c" },
+  { key: "navy", name: "深藍", color: "#171a39" },
 ];
 
 const state = {
@@ -63,7 +63,6 @@ function setBusy(busy) {
   $("loadingState").classList.toggle("hidden", !busy);
   $("emptyState").classList.toggle("hidden", busy || !!state.source);
   $("resegmentButton").disabled = busy || !state.sessionId;
-  $("sampleButton").disabled = busy;
   $("fileInput").disabled = busy;
   $("resetButton").disabled = busy;
   updateZoomControls(busy);
@@ -869,7 +868,6 @@ async function loadCompositorConfig() {
     if (!response.ok) throw new Error();
     const config = await response.json();
     control.disabled = !config.enabled;
-    $("sampleButton").hidden = !config.sample_available;
     control.title = config.renderer ? "裝置加速已連線" :
       config.enabled ? "等待裝置連線" : "目前未啟用裝置加速";
   } catch {
@@ -1049,17 +1047,6 @@ $("fileInput").addEventListener("change", (event) => {
   event.target.value = "";
 });
 
-$("sampleButton").addEventListener("click", async () => {
-  try {
-    const response = await fetch("/api/sample");
-    if (!response.ok) {
-      const result = await response.json();
-      throw new Error(result.error || "無法載入示範線稿");
-    }
-    loadImage(await response.blob(), "示範線稿.png");
-  } catch (error) { toast(error.message); }
-});
-
 $("thresholdRange").addEventListener("input", (event) => { $("thresholdValue").value = event.target.value; });
 $("closeRange").addEventListener("input", (event) => { $("closeValue").value = `${event.target.value} px`; });
 $("brushRange").addEventListener("input", (event) => { $("brushValue").value = event.target.value; });
@@ -1081,7 +1068,7 @@ $("toggleApiKey").addEventListener("click", () => {
   $("toggleApiKey").textContent = reveal ? "隱藏" : "顯示";
   $("toggleApiKey").setAttribute("aria-label", reveal ? "隱藏 API 金鑰" : "顯示 API 金鑰");
 });
-$("railwayExample").addEventListener("click", () => {
+$("railwayPreset").addEventListener("click", () => {
   $("apiBaseUrl").value = "https://asiasouth.up.railway.app/v1";
   noticeAPISettingsChanged();
 });
